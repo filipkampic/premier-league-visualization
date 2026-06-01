@@ -108,7 +108,7 @@ main {
     display: flex;
     flex-direction: column;
     gap: 24px;
-    max-width: 1200px;
+    max-width: 1250px;
     margin: 0 auto;
 }
 
@@ -180,7 +180,8 @@ svg text {
 
 .team-select-panel {
     border: 1px solid var(--border);
-    padding: 8px;
+    margin-right: 16px;
+    padding: 12px;
     border-radius: var(--radius);
     background: var(--surface);
     display: inline-flex;

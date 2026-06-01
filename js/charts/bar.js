@@ -1,7 +1,7 @@
 import { getTeamColor } from "../utils/teamColors.js";
 import { getTeamLogo } from "../utils/teamLogos.js";
 
-const margin = { top: 20, right: 30, bottom: 20, left: 44 };
+const margin = { top: 35, right: 30, bottom: 20, left: 64 };
 const width = 800 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
 
@@ -23,6 +23,16 @@ export function drawBarChart(data, round, allSeasonData) {
 
         svg.append("g").attr("class", "x-axis");
         svg.append("g").attr("class", "y-axis");
+
+        svg.append("text")
+        .attr("class", "x-axis-label")
+        .attr("text-anchor", "middle")
+        .attr("x", width / 2)
+        .attr("y", -25)
+        .style("font-size", "11px")
+        .style("fill", "#888")
+        .style("letter-spacing", "0.8px")
+        .text("POINTS");
     }
 
     const teamPoints = {};
@@ -124,6 +134,24 @@ export function drawBarChart(data, round, allSeasonData) {
         .attr("y", d => y(d.team) + y.bandwidth() / 2 - 12);
 
     logos.exit().remove();
+
+    const ranks = svg.selectAll(".bar-rank")
+        .data(chartData, d => d.team);
+
+    ranks.enter()
+        .append("text")
+        .attr("class", "bar-rank")
+        .attr("x", -44)
+        .attr("text-anchor", "middle")
+        .style("font-size", "10px")
+        .style("fill", "#aaa")
+        .style("pointer-events", "none")
+        .merge(ranks)
+        .transition().duration(500)
+        .attr("y", d => y(d.team) + y.bandwidth() / 2 + 4)
+        .text((d, i) => `#${i + 1}`);
+
+    ranks.exit().remove();
 
     const teamLabels = svg.selectAll(".bar-team-label")
         .data(chartData, d => d.team);

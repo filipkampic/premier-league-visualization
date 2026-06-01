@@ -313,6 +313,8 @@ svg text {
     display: flex;
     gap: 24px;
     margin-top: 12px;
+    justify-content: center;
+    width: 100%;
 }
 
 .donut-legend-item {

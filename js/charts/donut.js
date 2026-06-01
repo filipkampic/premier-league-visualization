@@ -1,9 +1,9 @@
 import { getTeamColor } from "../utils/teamColors.js";
 import { getTeamLogo } from "../utils/teamLogos.js";
 
-const width = 400;
-const height = 400;
-const radius = Math.min(width, height) / 2;
+const width = 460;
+const height = 460;
+const radius = Math.min(width, height) / 2 * 1.05;
 const innerRadius = radius * 0.55;
 
 let svg = null;
@@ -138,7 +138,7 @@ function renderDonut(data, team) {
 
     const pie = d3.pie().value(d => d.value).sort(null);
     const arc = d3.arc().innerRadius(innerRadius).outerRadius(radius * 0.85);
-    const arcHover = d3.arc().innerRadius(innerRadius).outerRadius(radius * 0.92);
+    const arcHover = d3.arc().innerRadius(innerRadius).outerRadius(radius * 0.95);
 
     let tooltip = d3.select("#donut-tooltip");
     if (tooltip.empty()) {

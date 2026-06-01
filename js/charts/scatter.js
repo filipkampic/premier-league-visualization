@@ -1,7 +1,7 @@
 import { getTeamColor } from "../utils/teamColors.js";
 import { getTeamLogo } from "../utils/teamLogos.js";
 
-const margin = { top: 40, right: 40, bottom: 60, left: 60 };
+const margin = { top: 40, right: 40, bottom: 120, left: 60 };
 const width = 700 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
 
@@ -69,6 +69,45 @@ export function drawScatterPlot(data) {
 
         svg.append("line").attr("class", "avg-line-x");
         svg.append("line").attr("class", "avg-line-y");
+
+        const quadrants = svg.append("g").attr("class", "quadrants");
+        quadrants.append("rect").attr("class", "q-elite");
+        quadrants.append("rect").attr("class", "q-highscoring");
+        quadrants.append("rect").attr("class", "q-defensive");
+        quadrants.append("rect").attr("class", "q-struggling");
+
+        const defs = svg.append("defs");
+        defs.append("marker")
+            .attr("id", "arrowhead")
+            .attr("markerWidth", 6).attr("markerHeight", 6)
+            .attr("refX", 3).attr("refY", 3)
+            .attr("orient", "auto")
+            .append("polygon")
+            .attr("points", "0 0, 6 3, 0 6")
+            .attr("fill", "#aaa");
+
+        svg.append("line").attr("class", "arrow-gf");
+        svg.append("line").attr("class", "arrow-ga");
+
+        const legendData = [
+            { color: "rgba(76,175,80,0.25)",  label: "Elite" },
+            { color: "rgba(255,193,7,0.25)", label: "Defensive" },
+            { color: "rgba(33,150,243,0.25)",  label: "High Scoring" },
+            { color: "rgba(244,67,54,0.25)",  label: "Struggling" },
+        ];
+
+        const lg = svg.append("g")
+            .attr("class", "scatter-legend")
+            .attr("transform", `translate(0, ${height + 75})`)
+            .attr("transform", `translate(${width / 2 - 160}, ${height + 75})`);
+
+        legendData.forEach((d, i) => {
+            const col = i % 2;
+            const row = Math.floor(i / 2);
+            const g = lg.append("g").attr("transform", `translate(${col * 280}, ${row * 18})`);
+            g.append("rect").attr("width", 12).attr("height", 12).attr("rx", 2).attr("fill", d.color).attr("stroke", "#ccc").attr("stroke-width", 0.5);
+            g.append("text").attr("x", 18).attr("y", 10).style("font-size", "11px").style("fill", "#888").text(d.label);
+        });
     }
 
     let tooltip = d3.select("#scatter-tooltip");
@@ -130,6 +169,41 @@ export function drawScatterPlot(data) {
         .attr("stroke", "#aaa")
         .attr("stroke-width", 1)
         .attr("stroke-dasharray", "4,4");
+
+    const qx = x(avgGF);
+    const qy = y(avgGA);
+
+    svg.select(".q-elite")
+        .attr("x", qx).attr("y", 0)
+        .attr("width", width - qx).attr("height", qy)
+        .attr("fill", "rgba(76, 175, 80, 0.07)");
+
+    svg.select(".q-highscoring")
+        .attr("x", qx).attr("y", qy)
+        .attr("width", width - qx).attr("height", height - qy)
+        .attr("fill", "rgba(33, 150, 243, 0.07)");
+
+    svg.select(".q-defensive")
+        .attr("x", 0).attr("y", 0)
+        .attr("width", qx).attr("height", qy)
+        .attr("fill", "rgba(255, 193, 7, 0.07)");
+
+    svg.select(".q-struggling")
+        .attr("x", 0).attr("y", qy)
+        .attr("width", qx).attr("height", height - qy)
+        .attr("fill", "rgba(244, 67, 54, 0.07)");
+
+    svg.select(".arrow-gf")
+        .attr("x1", 0).attr("y1", 8)
+        .attr("x2", 0).attr("y2", 28)
+        .attr("stroke", "#aaa").attr("stroke-width", 1.5)
+        .attr("marker-end", "url(#arrowhead)");
+
+    svg.select(".arrow-ga")
+        .attr("x1", 8).attr("y1", 0)
+        .attr("x2", 28).attr("y2", 0)
+        .attr("stroke", "#aaa").attr("stroke-width", 1.5)
+        .attr("marker-end", "url(#arrowhead)");
 
     const logoSize = 28;
 

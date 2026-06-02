@@ -13,6 +13,7 @@ const SPIDER_COLORS = ["#5c6bc0", "#e53935", "#43a047"];
 
 let svg = null;
 let tooltip = null;
+let showLeagueAvg = null;
 
 function getTeamStats(data, team) {
     let gf = 0, ga = 0, w = 0, d = 0, l = 0;
@@ -141,6 +142,16 @@ export function drawSpiderChart(data) {
         legend.id = "spider-legend";
         legend.className = "spider-legend";
         section.appendChild(legend);
+
+        const avgToggle = document.createElement("div");
+        avgToggle.className = "spider-avg-toggle";
+        avgToggle.innerHTML = `
+            <label>
+                <input type="checkbox" id="spider-avg-checkbox">
+                Show league average
+            </label>
+        `;
+        section.appendChild(avgToggle);
     }
 
     for (let i = 1; i <= 3; i++) {
@@ -223,32 +234,30 @@ export function drawSpiderChart(data) {
                     const teams = getSelectedTeams();
                     if (teams.length === 0) return;
 
-                    const allStats = allTeams.map(team => ({
-                        team, ...getTeamStats(data, team)
-                    }));
-                    const normalized = normalize(allStats);
+                    const allStats = allTeams.map(team => ({ team, ...getTeamStats(data, team) }));
 
                     const lines = teams.map((team, idx) => {
                         const raw = allStats.find(n => n.team === team);
-                        return `<strong style="color:${SPIDER_COLORS[idx]}">${team}</strong>: ${raw[m]}`;
+                        return `<span style="color:${SPIDER_COLORS[idx]}">●</span> <strong>${team}</strong>: ${raw[m]}`;
                     }).join("<br>");
 
-                    tooltip.style("opacity", 1)
-                        .html(`<strong>${m}</strong><br>${lines}`);
+                    tooltip.style("opacity", 1).html(`<strong style="color:#555">${m}</strong><br>${lines}`);
 
-                    svg.select(`.axis-${i}`)
-                        .attr("stroke", "#33333333")
-                        .attr("stroke-width", 20);
+                    const p = pointOnAxis(i, maxRadius);
+                    svg.select(".spider-polygons").append("line")
+                        .attr("class", "axis-highlight")
+                        .attr("x1", cx).attr("y1", cy)
+                        .attr("x2", p.x).attr("y2", p.y)
+                        .attr("stroke", "#555")
+                        .attr("stroke-width", 2)
+                        .style("pointer-events", "none");
                 })
                 .on("mousemove", (event) => {
-                    tooltip
-                        .style("left", (event.pageX + 12) + "px")
-                        .style("top", (event.pageY - 28) + "px");
+                    tooltip.style("left", (event.pageX + 12) + "px").style("top", (event.pageY - 28) + "px");
                 })
                 .on("mouseout", () => {
                     tooltip.style("opacity", 0);
-                    svg.select(`.axis-${i}`)
-                        .attr("stroke", "transparent");
+                    svg.selectAll(".axis-highlight").remove();
                 });
         });
     }
@@ -257,6 +266,11 @@ export function drawSpiderChart(data) {
         renderPolygons(data, allTeams);
         updateLegend();
     }, 0);
+
+    document.getElementById("spider-avg-checkbox").addEventListener("change", (e) => {
+        showLeagueAvg = e.target.checked;
+        renderPolygons(data, allTeams);
+    });
 }
 
 function renderPolygons(data, allTeams) {
@@ -268,7 +282,7 @@ function renderPolygons(data, allTeams) {
     const normalized = normalize(allStats);
 
     const g = svg.select(".spider-polygons");
-    g.selectAll("*").remove();
+    g.selectAll("*").interrupt().remove();
 
     selectedTeams.forEach((team, idx) => {
         const teamNorm = normalized.find(s => s.team === team);
@@ -276,14 +290,17 @@ function renderPolygons(data, allTeams) {
 
         const points = polygonPoints(teamNorm.norm);
         const color = SPIDER_COLORS[idx];
+        const pointsStr = points.map(p => `${p.x},${p.y}`).join(" ");
 
         g.append("polygon")
-            .attr("points", points.map(p => `${p.x},${p.y}`).join(" "))
+            .attr("points", pointsStr)
             .attr("fill", color)
-            .attr("fill-opacity", 0.2)
+            .attr("fill-opacity", 0)
             .attr("stroke", color)
             .attr("stroke-width", 2)
-            .style("pointer-events", "none");
+            .style("pointer-events", "none")
+            .transition().duration(500)
+            .attr("fill-opacity", 0.2);
 
         metrics.forEach((m, i) => {
             const p = points[i];
@@ -291,7 +308,7 @@ function renderPolygons(data, allTeams) {
             g.append("circle")
                 .attr("cx", p.x)
                 .attr("cy", p.y)
-                .attr("r", 4)
+                .attr("r", 0)
                 .attr("fill", color)
                 .attr("stroke", "#fff")
                 .attr("stroke-width", 1.5)
@@ -305,8 +322,8 @@ function renderPolygons(data, allTeams) {
                         .html(`
                             <span style="color:${color}">●</span>
                             <strong>${team}</strong><br>
-                            <span style="color:#888">${m}</span>: 
-                            <strong>${rawStats[m]}</strong>
+                            <span style="color:#888">${m}</span>: <strong>${rawStats[m]}</strong>
+                            ${showLeagueAvg ? `<br><span style="color:#999">○ League avg: ${avgStats[m].toFixed(1)}</span>` : ""}
                         `);
                 })
                 .on("mousemove", (event) => {
@@ -320,9 +337,38 @@ function renderPolygons(data, allTeams) {
                         .attr("r", 4)
                         .attr("stroke-width", 1.5);
                     tooltip.style("opacity", 0);
-                });
+                })
+                .transition().duration(300).delay(200)
+                .attr("r", 4);
+                    });
         });
-    });
+
+    svg.select(".league-avg-polygon").remove();
+
+    if (showLeagueAvg) {
+        const avgStats = {};
+        metrics.forEach(m => {
+            avgStats[m] = d3.mean(allStats, s => s[m]);
+        });
+
+        const statsWithAvg = [...allStats, { team: "__avg__", ...avgStats }];
+        const normalizedWithAvg = normalize(statsWithAvg);
+        const avgNorm = normalizedWithAvg.find(s => s.team === "__avg__");
+
+        const avgPoints = polygonPoints(avgNorm.norm);
+        const avgStr = avgPoints.map(p => `${p.x},${p.y}`).join(" ");
+
+        svg.select(".spider-polygons").append("polygon")
+            .attr("class", "league-avg-polygon")
+            .attr("points", metrics.map(() => `${cx},${cy}`).join(" "))
+            .attr("fill", "rgba(150,150,150,0.08)")
+            .attr("stroke", "#666")
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", "6,3")
+            .style("pointer-events", "none")
+            .transition().duration(500).ease(d3.easeQuadInOut)
+            .attr("points", avgStr);
+    }
 }
 
 function updateSelectOptions() {

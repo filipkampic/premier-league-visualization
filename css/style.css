@@ -389,3 +389,18 @@ svg text {
     border-radius: 50%;
     display: inline-block;
 }
+
+.spider-avg-toggle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.spider-avg-toggle input {
+    cursor: pointer;
+    accent-color: var(--accent);
+}

@@ -1,7 +1,7 @@
 import { getTeamColor } from "../utils/teamColors.js";
 import { getTeamLogo } from "../utils/teamLogos.js";
 
-const margin = { top: 40, right: 40, bottom: 120, left: 60 };
+const margin = { top: 40, right: 40, bottom: 140, left: 60 };
 const width = 700 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
 
@@ -94,6 +94,7 @@ export function drawScatterPlot(data) {
             { color: "rgba(255,193,7,0.25)", label: "Defensive" },
             { color: "rgba(33,150,243,0.25)",  label: "High Scoring" },
             { color: "rgba(244,67,54,0.25)",  label: "Struggling" },
+            { color: null, label: "Season Average", dashed: true }
         ];
 
         const lg = svg.append("g")
@@ -105,8 +106,17 @@ export function drawScatterPlot(data) {
             const col = i % 2;
             const row = Math.floor(i / 2);
             const g = lg.append("g").attr("transform", `translate(${col * 280}, ${row * 18})`);
-            g.append("rect").attr("width", 12).attr("height", 12).attr("rx", 2).attr("fill", d.color).attr("stroke", "#ccc").attr("stroke-width", 0.5);
-            g.append("text").attr("x", 18).attr("y", 10).style("font-size", "11px").style("fill", "#888").text(d.label);
+            if (d.dashed) {
+                g.append("line")
+                    .attr("x1", 0).attr("y1", 6).attr("x2", 12).attr("y2", 6)
+                    .attr("stroke", "#aaa").attr("stroke-width", 1.5)
+                    .attr("stroke-dasharray", "4,3");
+            } else {
+                g.append("rect").attr("width", 12).attr("height", 12).attr("rx", 2)
+                    .attr("fill", d.color).attr("stroke", "#ccc").attr("stroke-width", 0.5);
+            }
+            g.append("text").attr("x", 18).attr("y", 10)
+                .style("font-size", "11px").style("fill", "#888").text(d.label);
         });
     }
 

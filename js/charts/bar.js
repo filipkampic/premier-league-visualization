@@ -33,6 +33,48 @@ export function drawBarChart(data, round, allSeasonData) {
         .style("fill", "#888")
         .style("letter-spacing", "0.8px")
         .text("POINTS");
+
+        const barSection = document.getElementById("bar-chart");
+        if (!document.getElementById("autoplay-btn")) {
+            const btn = document.createElement("button");
+            btn.id = "autoplay-btn";
+            btn.textContent = "▶ Auto Play";
+            btn.className = "autoplay-btn";
+            const barControls = barSection.querySelector(".bar-controls");
+            barControls.appendChild(btn);
+
+            let playing = false;
+            let interval = null;
+
+            btn.addEventListener("click", () => {
+                if (playing) {
+                    clearInterval(interval);
+                    btn.textContent = "▶ Auto Play";
+                    playing = false;
+                } else {
+                    const slider = document.getElementById("round-slider");
+                    const maxRound = Number(slider.max);
+                    if (Number(slider.value) >= maxRound) {
+                        slider.value = 1;
+                        slider.dispatchEvent(new Event("input"));
+                    }
+                    btn.textContent = "⏹ Stop";
+                    playing = true;
+                    interval = setInterval(() => {
+                        const current = Number(slider.value);
+                        const max = Number(slider.max);
+                        if (current >= max) {
+                            clearInterval(interval);
+                            btn.textContent = "▶ Auto Play";
+                            playing = false;
+                            return;
+                        }
+                        slider.value = current + 1;
+                        slider.dispatchEvent(new Event("input"));
+                    }, 600);
+                }
+            });
+        }
     }
 
     const teamPoints = {};

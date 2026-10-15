@@ -37,3 +37,13 @@ Podaci su preuzeti s [Football-Data.co.uk](https://www.football-data.co.uk) i sp
 - **Scatter plot** – odnos zabijenih i primljenih golova (GF vs GA)
 - **Donut chart** – omjer pobjeda, remija i poraza odabranog kluba
 - **Spider chart** – višedimenzionalni profil kluba (GF, GA, W, D, L)
+
+## Screenshots
+
+| Bar Chart | Line Chart | Scatter Plot |
+| :---: | :---: | :---: |
+| <img src="screenshots/bar-chart.png" width="480" alt="Bar Chart"/> | <img src="screenshots/line-chart.png" width="480" alt="Line Chart"/> | <img src="screenshots/scatter-plot.png" width="480" alt="Scatter Plot"/> |
+
+| Donut Chart | Spider Chart |
+| :---: | :---: |
+| <img src="screenshots/donut-chart.png" width="480" alt="Donut Chart"/> | <img src="screenshots/spider-chart.png" width="480" alt="Spider Chart"/> |
